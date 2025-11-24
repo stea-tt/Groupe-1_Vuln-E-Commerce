@@ -8,10 +8,11 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-const JWT_SECRET = process.env.JWT_SECRET || "my-super-secret-jwt-key-12345";
+const JWT_SECRET = process.env.JWT_SECRET || "sk_live_51Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i2b";
 const SESSION_SECRET = process.env.SESSION_SECRET || "my-session-secret-key";
 const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/ecommerce";
-const ADMIN_API_KEY = "admin-key-123456";
+const STRIPE_SECRET_KEY = "sk_live_51Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i5p";
+const ADMIN_API_KEY = "sk_live_51Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i3m";
 
 app.use(cors({
     origin: '*',
@@ -46,7 +47,8 @@ db.users.push({
     username: 'admin',
     email: 'admin@ecommerce.com',
     role: 'admin',
-    apiKey: ADMIN_API_KEY
+    apiKey: ADMIN_API_KEY,
+    STRIPE_SECRET_KEY: STRIPE_SECRET_KEY
 });
 
 db.users.push({
@@ -257,7 +259,8 @@ app.get('/api/debug', (req, res) => {
         secrets: {
             JWT_SECRET: JWT_SECRET,
             SESSION_SECRET: SESSION_SECRET,
-            ADMIN_API_KEY: ADMIN_API_KEY
+            ADMIN_API_KEY: ADMIN_API_KEY,
+            STRIPE_SECRET_KEY: STRIPE_SECRET_KEY
         },
         database: db
     });

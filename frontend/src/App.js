@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const API_KEY = 'frontend-api-key-123456';
+const API_KEY = 'sk_live_41Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i5p';
 const API_URL = 'http://localhost:5001/api';
 
 function App() {
