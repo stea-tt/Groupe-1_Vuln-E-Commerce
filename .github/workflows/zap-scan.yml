@@ -2,9 +2,9 @@ name: OWASP ZAP Security Scan
 
 on:
   push:
-    branches: [main, master, develop]
+    branches: [main, develop]
   pull_request:
-    branches: [main, master]
+    branches: [main]
   schedule:
     # Scan automatique tous les lundis à 2h du matin
     - cron: '0 2 * * 1'
@@ -68,7 +68,7 @@ jobs:
           fail_action: false
 
       - name: Upload ZAP Backend Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zap-backend-report
@@ -172,7 +172,7 @@ jobs:
           fail_action: false
 
       - name: Upload ZAP Full Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zap-full-report
@@ -224,7 +224,7 @@ jobs:
           fail_action: false
 
       - name: Upload ZAP API Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: zap-api-report
