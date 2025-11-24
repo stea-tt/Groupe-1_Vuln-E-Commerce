@@ -25,7 +25,7 @@ jobs:
       - name: Build and start application
         run: |
           echo "🚀 Démarrage de l'application e-commerce..."
-          docker-compose up -d --build
+          docker compose up -d --build
           echo "⏳ Attente du démarrage complet..."
           sleep 45
 
@@ -41,7 +41,7 @@ jobs:
             sleep 5
           done
           echo "❌ Backend inaccessible après 50 secondes"
-          docker-compose logs
+          docker compose logs
           exit 1
 
       - name: Verify frontend is running
@@ -128,16 +128,16 @@ jobs:
         if: failure()
         run: |
           echo "📋 Logs du backend:"
-          docker-compose logs backend
+          docker compose logs backend
           echo ""
           echo "📋 Logs du frontend:"
-          docker-compose logs frontend
+          docker compose logs frontend
 
       - name: Stop application
         if: always()
         run: |
           echo "🛑 Arrêt de l'application..."
-          docker-compose down -v
+          docker compose down -v
           docker system prune -af
 
   zap-full-scan:
@@ -155,7 +155,7 @@ jobs:
 
       - name: Build and start application
         run: |
-          docker-compose up -d --build
+          docker compose up -d --build
           sleep 45
 
       - name: Verify application
@@ -183,7 +183,7 @@ jobs:
 
       - name: Stop application
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
 
   zap-api-scan:
     name: ZAP API Scan
@@ -195,7 +195,7 @@ jobs:
 
       - name: Build and start application
         run: |
-          docker-compose up -d --build
+          docker compose up -d --build
           sleep 45
 
       - name: Verify backend
@@ -234,4 +234,4 @@ jobs:
 
       - name: Stop application
         if: always()
-        run: docker-compose down -v
+        run: docker compose down -v
