@@ -81,7 +81,7 @@ Le frontend sera accessible sur `http://localhost:3000`
 
 ```bash
 # À la racine du projet
-docker-compose up --build
+docker compose up --build
 ```
 
 Services disponibles :
