@@ -1,6 +1,6 @@
-# 🛒 E-Commerce - Projet DevSecOps
+# E-Commerce - Projet DevSecOps
 
-## 📋 Description
+## Description
 
 Application e-commerce fullstack (Node.js + React) conçue pour l'apprentissage du DevSecOps.
 
@@ -24,7 +24,7 @@ Application e-commerce fullstack (Node.js + React) conçue pour l'apprentissage 
 
 ---
 
-## 🎯 Objectifs Pédagogiques
+## Objectifs Pédagogiques
 
 Ce projet permet d'apprendre à :
 
@@ -36,7 +36,7 @@ Ce projet permet d'apprendre à :
 
 ---
 
-## 🚀 Installation et Démarrage
+## Installation et Démarrage
 
 ### Prérequis
 
