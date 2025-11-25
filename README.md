@@ -90,7 +90,7 @@ Services disponibles :
 
 ---
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 vuln-ecommerce/
@@ -118,9 +118,9 @@ vuln-ecommerce/
 
 ---
 
-## 🎓 Travail Demandé (Projet Étudiant)
+## Travail Demandé (Projet Étudiant)
 
-### Phase 1 : Analyse (1 semaine)
+### Phase 1 : Analyse
 
 1. **Identifier les vulnérabilités**
    - Utiliser les outils SAST/SCA fournis dans le pipeline
@@ -133,17 +133,15 @@ vuln-ecommerce/
    - Exécuter le pipeline localement si possible
    - Interpréter les résultats des scans
 
-### Phase 2 : Corrections (1 semaine)
+### Phase 2 : Corrections
 
 3. **Corriger les vulnérabilités**
-   - Backend : créer `server.secure.js` avec les corrections
-   - Frontend : créer `App.secure.js` avec les corrections
-   - Docker : créer `Dockerfile.secure` pour chaque service
    - Documenter les corrections dans `CORRECTIONS.md`
+   - Mettez les fichiers `server.js`, `App.js` `Dockerfile` `docker-compose.yml` avec les corrections dans la branch **secure** de votre repo
 
 4. **Documentation et présentation**
-   - README complet avec explications
-   - Rapport PDF (8-12 pages)
+   - README
+   - Rapport PDF
    - Slides de présentation
    - Démo du pipeline
 
@@ -177,7 +175,7 @@ vuln-ecommerce/
 
 ```bash
 # Démarrer l'application
-docker-compose up --build
+docker compose up --build
 
 # Dans un autre terminal, tester l'API
 curl http://localhost:5001/health
@@ -253,7 +251,7 @@ Avant de soumettre votre projet, vérifiez :
 - [ ] `VULNERABILITIES.md` complet
 - [ ] `CORRECTIONS.md` avec avant/après
 - [ ] README mis à jour
-- [ ] Rapport PDF (8-12 pages)
+- [ ] Rapport PDF
 - [ ] Slides de présentation
 
 ---
@@ -268,7 +266,6 @@ Avant de soumettre votre projet, vérifiez :
    - Ressources OWASP
 
 2. **Questions** :
-   - Ouvrir une issue sur GitHub
    - Contacter l'enseignant
 
 3. **Bugs** :
@@ -278,34 +275,5 @@ Avant de soumettre votre projet, vérifiez :
 
 ---
 
-## 🎯 Critères de Réussite
 
-**Pour obtenir la moyenne (50/100)** :
-- ✅ Au moins 10 vulnérabilités identifiées
-- ✅ Pipeline analysé et compris
-- ✅ 50% des corrections appliquées
-- ✅ Documentation basique
-
-**Pour l'excellence (>90/100)** :
-- ✅ Toutes les vulnérabilités identifiées et corrigées
-- ✅ Pipeline maîtrisé
-- ✅ 0 vulnérabilités HIGH ou CRITICAL restantes
-- ✅ Documentation professionnelle
-- ✅ Présentation avec démo live
-
----
-
-## 📄 Licence
-
-MIT License - Projet pédagogique uniquement
-
----
-
-## 👥 Contributeurs
-
-- Projet créé pour le cours DevSecOps - Bac+3 Cybersécurité
-- Formateur : Kalidou DIA
-
----
-
-**Bon courage ! 🚀🔒**
+**Bon courage !**

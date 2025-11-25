@@ -50,7 +50,7 @@ jobs:
           curl -sf http://localhost:3000 > /dev/null || echo "⚠️  Frontend inaccessible (non bloquant)"
 
       - name: ZAP Baseline Scan - Backend API
-        uses: zaproxy/action-baseline@v0.10.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:5001'
           rules_file_name: '.zap/rules.tsv'
@@ -59,7 +59,7 @@ jobs:
           fail_action: false  # Ne pas faire échouer le job (pour analyse)
 
       - name: ZAP Baseline Scan - Frontend
-        uses: zaproxy/action-baseline@v0.10.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:3000'
           rules_file_name: '.zap/rules.tsv'
@@ -163,7 +163,7 @@ jobs:
           curl -sf http://localhost:5001/health || exit 1
 
       - name: ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.8.0
+        uses: zaproxy/action-full-scan@v0.13.0
         with:
           target: 'http://localhost:5001'
           rules_file_name: '.zap/rules.tsv'
@@ -215,7 +215,7 @@ jobs:
           EOF
 
       - name: ZAP API Scan
-        uses: zaproxy/action-api-scan@v0.6.0
+        uses: zaproxy/action-api-scan@v0.10.0
         with:
           target: 'http://localhost:5001/api'
           format: 'openapi'
