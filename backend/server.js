@@ -1,54 +1,56 @@
-
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const session = require('express-session');
-const mongoose = require('mongoose');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-const JWT_SECRET = process.env.JWT_SECRET || "sk_live_51Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i2b";
-const SESSION_SECRET = process.env.SESSION_SECRET || "my-session-secret-key";
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost:27017/ecommerce";
-const STRIPE_SECRET_KEY = "sk_live_51Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i5p";
-const ADMIN_API_KEY = "sk_live_51Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i3m";
+const JWT_SECRET = process.env.JWT_SECRET;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+const MONGODB_URI = process.env.MONGODB_URI;
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+
+if (!JWT_SECRET || !SESSION_SECRET || !STRIPE_SECRET_KEY || !ADMIN_API_KEY) {
+    console.error('ERREUR: Variables d\'environnement manquantes. Vérifiez votre fichier .env');
+    process.exit(1);
+}
 
 app.use(cors({
-    origin: '*',
+    origin: process.env.ALLOWED_ORIGINS || 'http://localhost:3000',
     credentials: true
 }));
 
-// Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(session({
+    name: 'ecommerce_session',
     secret: SESSION_SECRET,
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {
-        secure: false,
-        httpOnly: false,
-        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 jours
+        secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'strict',
+        maxAge: 24 * 60 * 60 * 1000
     }
 }));
 
-// Connexion MongoDB (in-memory pour faciliter)
-// En production, utiliser une vraie DB
 const db = {};
 db.users = [];
 db.products = [];
 db.orders = [];
+db.reviews = [];
 
-// Données de test
 db.users.push({
     id: 1,
     username: 'admin',
     email: 'admin@ecommerce.com',
-    role: 'admin',
-    apiKey: ADMIN_API_KEY,
-    STRIPE_SECRET_KEY: STRIPE_SECRET_KEY
+    role: 'admin'
 });
 
 db.users.push({
@@ -66,11 +68,6 @@ db.products = [
     { id: 4, name: 'Chaussures Adidas', price: 89, stock: 30, category: 'clothing' }
 ];
 
-// ============================================
-// ROUTES
-// ============================================
-
-// Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date() });
 });
@@ -78,19 +75,29 @@ app.get('/health', (req, res) => {
 app.get('/api/products/search', (req, res) => {
     const query = req.query.q;
 
-    try {
-        const searchCode = `db.products.filter(p => p.name.toLowerCase().includes('${query}'.toLowerCase()))`;
-        const results = eval(searchCode);
-        res.json(results);
-    } catch(e) {
-        res.status(500).json({
-            error: e.message,
-        });
+    if (!query || typeof query !== 'string') {
+        return res.status(400).json({ error: 'Paramètre de recherche invalide' });
     }
+
+    const sanitizedQuery = query.toLowerCase().trim();
+    const results = db.products.filter(p =>
+        p.name.toLowerCase().includes(sanitizedQuery)
+    );
+
+    res.json(results);
 });
 
 app.post('/api/register', (req, res) => {
     const { username, password, email } = req.body;
+
+    if (!username || !password || !email) {
+        return res.status(400).json({ error: 'Champs requis manquants' });
+    }
+
+    const existingUser = db.users.find(u => u.username === username || u.email === email);
+    if (existingUser) {
+        return res.status(400).json({ error: 'Utilisateur déjà existant' });
+    }
 
     const newUser = {
         id: db.users.length + 1,
@@ -99,9 +106,9 @@ app.post('/api/register', (req, res) => {
         email: email,
         role: 'customer'
     };
-    
+
     db.users.push(newUser);
-    
+
     res.json({
         success: true,
         message: 'Utilisateur créé',
@@ -111,15 +118,12 @@ app.post('/api/register', (req, res) => {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
-    const query = `username = '${username}' AND password = '${password}'`;
+    if (!username || !password) {
+        return res.status(400).json({ error: 'Identifiants requis' });
+    }
 
-    const user = db.users.find(u => {
-        if (username.includes("' OR '1'='1")) {
-            return true;
-        }
-        return u.username === username && u.password === password;
-    });
-    
+    const user = db.users.find(u => u.username === username && u.password === password);
+
     if (user) {
         const jwt = require('jsonwebtoken');
         const token = jwt.sign(
@@ -128,11 +132,16 @@ app.post('/api/login', (req, res) => {
                 username: user.username,
                 role: user.role
             },
-            JWT_SECRET
+            JWT_SECRET,
+            { expiresIn: '24h' }
         );
-        
-        req.session.user = user;
-        
+
+        req.session.user = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
+
         res.json({
             success: true,
             token: token,
@@ -145,35 +154,64 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-app.get('/api/users', (req, res) => {
-    res.json(db.users);
+const requireAuth = (req, res, next) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Non authentifié' });
+    }
+    next();
+};
+
+const requireAdmin = (req, res, next) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Accès refusé' });
+    }
+    next();
+};
+
+app.get('/api/users', requireAdmin, (req, res) => {
+    const safeUsers = db.users.map(u => ({
+        id: u.id,
+        username: u.username,
+        email: u.email,
+        role: u.role
+    }));
+    res.json(safeUsers);
 });
 
-app.get('/api/users/:id', (req, res) => {
-    const userId = req.params.id;
+app.get('/api/users/:id', requireAuth, (req, res) => {
+    const userId = parseInt(req.params.id, 10);
 
-    const user = db.users.find(u => u.id == userId);
+    if (req.session.user.id !== userId && req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Accès refusé' });
+    }
+
+    const user = db.users.find(u => u.id === userId);
 
     if (user) {
-        res.json(user);
+        const { password, ...safeUser } = user;
+        res.json(safeUser);
     } else {
         res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 });
 
-app.post('/api/products/:id/review', (req, res) => {
-    const productId = parseInt(req.params.id);
+app.post('/api/products/:id/review', requireAuth, (req, res) => {
+    const productId = parseInt(req.params.id, 10);
     const { rating, comment } = req.body;
+
+    if (!rating || rating < 1 || rating > 5) {
+        return res.status(400).json({ error: 'Note invalide (1-5)' });
+    }
 
     const review = {
         id: Date.now(),
         productId: productId,
-        rating: rating,
-        comment: comment,
+        userId: req.session.user.id,
+        rating: parseInt(rating, 10),
+        comment: comment ? String(comment).substring(0, 500) : '',
         date: new Date()
     };
 
-    if (!db.reviews) db.reviews = [];
     db.reviews.push(review);
 
     res.json({
@@ -183,43 +221,44 @@ app.post('/api/products/:id/review', (req, res) => {
 });
 
 app.get('/api/products/:id/reviews', (req, res) => {
-    const productId = parseInt(req.params.id);
-
-    if (!db.reviews) db.reviews = [];
-
+    const productId = parseInt(req.params.id, 10);
     const productReviews = db.reviews.filter(r => r.productId === productId);
-
     res.json(productReviews);
 });
 
-// Liste des produits
 app.get('/api/products', (req, res) => {
     res.json(db.products);
 });
 
-app.post('/api/checkout', (req, res) => {
-    const { userId, productId, quantity, creditCard } = req.body;
+app.post('/api/checkout', requireAuth, (req, res) => {
+    const { productId, quantity } = req.body;
+    const userId = req.session.user.id;
 
-    const product = db.products.find(p => p.id == productId);
-    
+    const product = db.products.find(p => p.id === parseInt(productId, 10));
+
     if (!product) {
         return res.status(404).json({ message: 'Produit non trouvé' });
     }
-    
-    if (product.stock >= quantity) {
-        product.stock -= quantity;
-        
+
+    const qty = parseInt(quantity, 10);
+    if (!qty || qty < 1) {
+        return res.status(400).json({ message: 'Quantité invalide' });
+    }
+
+    if (product.stock >= qty) {
+        product.stock -= qty;
+
         const order = {
             id: db.orders.length + 1,
             userId: userId,
-            productId: productId,
-            quantity: quantity,
-            total: product.price * quantity,
+            productId: product.id,
+            quantity: qty,
+            total: product.price * qty,
             date: new Date()
         };
-        
+
         db.orders.push(order);
-        
+
         res.json({
             success: true,
             order: order
@@ -231,42 +270,47 @@ app.post('/api/checkout', (req, res) => {
     }
 });
 
-app.get('/api/admin/stats', (req, res) => {
+app.get('/api/admin/stats', requireAdmin, (req, res) => {
     res.json({
         totalUsers: db.users.length,
         totalProducts: db.products.length,
-        totalOrders: db.orders.length,
-        users: db.users,
-        orders: db.orders
+        totalOrders: db.orders.length
     });
 });
 
-app.get('/api/files/:filename', (req, res) => {
+app.get('/api/files/:filename', requireAuth, (req, res) => {
     const filename = req.params.filename;
     const fs = require('fs');
 
+    const safeName = path.basename(filename);
+    const uploadsDir = path.resolve('./uploads');
+    const filePath = path.join(uploadsDir, safeName);
+
+    if (!filePath.startsWith(uploadsDir)) {
+        return res.status(403).json({ message: 'Accès refusé' });
+    }
+
     try {
-        const content = fs.readFileSync(`./uploads/${filename}`, 'utf8');
-        res.send(content);
+        const content = fs.readFileSync(filePath, 'utf8');
+        res.type('text/plain').send(content);
     } catch(e) {
         res.status(404).json({ message: 'Fichier non trouvé' });
     }
 });
 
-app.get('/api/debug', (req, res) => {
-    res.json({
-        env: process.env,
-        secrets: {
-            JWT_SECRET: JWT_SECRET,
-            SESSION_SECRET: SESSION_SECRET,
-            ADMIN_API_KEY: ADMIN_API_KEY,
-            STRIPE_SECRET_KEY: STRIPE_SECRET_KEY
-        },
-        database: db
+if (process.env.NODE_ENV !== 'production') {
+    app.get('/api/debug', requireAdmin, (req, res) => {
+        res.json({
+            message: 'Debug mode',
+            database: {
+                usersCount: db.users.length,
+                productsCount: db.products.length,
+                ordersCount: db.orders.length
+            }
+        });
     });
-});
+}
 
-// Route par défaut
 app.get('/', (req, res) => {
     res.json({
         endpoints: [
@@ -279,13 +323,11 @@ app.get('/', (req, res) => {
             'POST /api/products/:id/review',
             'POST /api/checkout',
             'GET /api/admin/stats',
-            'GET /api/files/:filename',
-            'GET /api/debug'
+            'GET /api/files/:filename'
         ]
     });
 });
 
-// Démarrage du serveur
 app.listen(PORT, () => {
     console.log(`Serveur démarré sur le port ${PORT}`);
 });
