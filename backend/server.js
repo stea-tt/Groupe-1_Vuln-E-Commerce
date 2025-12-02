@@ -33,10 +33,13 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: true,
         httpOnly: true,
         sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000
+        maxAge: 24 * 60 * 60 * 1000,
+        domain: process.env.COOKIE_DOMAIN || 'localhost',
+        path: '/',
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
     }
 }));
 
@@ -283,10 +286,15 @@ app.get('/api/files/:filename', requireAuth, (req, res) => {
     const fs = require('fs');
 
     const safeName = path.basename(filename);
-    const uploadsDir = path.resolve('./uploads');
-    const filePath = path.join(uploadsDir, safeName);
 
-    if (!filePath.startsWith(uploadsDir)) {
+    if (safeName !== filename || filename.includes('..')) {
+        return res.status(403).json({ message: 'Accès refusé' });
+    }
+
+    const uploadsDir = path.resolve('./uploads');
+    const filePath = path.resolve(uploadsDir, safeName);
+
+    if (!filePath.startsWith(uploadsDir + path.sep)) {
         return res.status(403).json({ message: 'Accès refusé' });
     }
 
