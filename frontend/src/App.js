@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const API_KEY = 'sk_live_41Hqp9K2eZvKYlo2C8xO3n4y5z6a7b8c9d0e1f2g3h4i5p';
-const API_URL = 'http://localhost:5001/api';
+const API_KEY = process.env.REACT_APP_API_KEY;
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001/api';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -16,11 +16,11 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    
+
     if (token && userData) {
       setUser(JSON.parse(userData));
     }
-    
+
     loadProducts();
   }, []);
 
@@ -36,14 +36,10 @@ function App() {
 
   const handleSearch = async () => {
     try {
-      const filtered = products.filter(p => {
-        try {
-
-          return eval(`p.name.toLowerCase().includes('${searchQuery}'.toLowerCase())`);
-        } catch(e) {
-          return false;
-        }
-      });
+      const sanitizedQuery = searchQuery.toLowerCase().trim();
+      const filtered = products.filter(p => 
+        p.name.toLowerCase().includes(sanitizedQuery)
+      );
       setProducts(filtered);
     } catch (error) {
       console.error('Erreur recherche:', error);
@@ -86,8 +82,6 @@ function App() {
     const email = e.target.email.value;
     const password = e.target.password.value;
 
-    // Permet d'envoyer n'importe quoi au backend
-
     try {
       const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
@@ -122,7 +116,7 @@ function App() {
       try {
         const response = await fetch(`${API_URL}/checkout`, {
           method: 'POST',
-          headers: { 
+          headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
@@ -146,7 +140,7 @@ function App() {
   const ProductCard = ({ product }) => {
     return (
       <div className="product-card">
-        <h3 dangerouslySetInnerHTML={{ __html: product.name }}></h3>
+        <h3>{product.name}</h3>
         <p className="price">{product.price}€</p>
         <p>Stock: {product.stock}</p>
         <button onClick={() => addToCart(product)}>Ajouter au panier</button>
@@ -188,19 +182,11 @@ function App() {
 
       const data = await response.json();
       alert('Avis ajouté !');
-      // Recharger les reviews
       loadProductReviews(productId);
     } catch (error) {
       console.error('Erreur ajout avis:', error);
     }
   };
-
-  useEffect(() => {
-    // Logs qui exposent des infos sensibles
-    console.log('User data:', user);
-    console.log('API Key:', API_KEY);
-    console.log('JWT Token:', localStorage.getItem('token'));
-  }, [user]);
 
   return (
     <div className="App">
@@ -237,7 +223,7 @@ function App() {
         {view === 'products' && (
           <div className="products-view">
             <h2>Nos Produits</h2>
-            
+
             <div className="search-bar">
               <input
                 type="text"
@@ -340,7 +326,7 @@ function App() {
             </button>
 
             <div className="product-details-card">
-              <h2 dangerouslySetInnerHTML={{ __html: selectedProduct.name }}></h2>
+              <h2>{selectedProduct.name}</h2>
               <p className="price" style={{fontSize: '2em', color: '#007bff', margin: '20px 0'}}>
                 {selectedProduct.price}€
               </p>
@@ -381,10 +367,9 @@ function App() {
                           {new Date(review.date).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                      <div
-                        className="review-comment"
-                        dangerouslySetInnerHTML={{ __html: review.comment }}
-                      />
+                      <div className="review-comment">
+                        {review.comment}
+                      </div>
                     </div>
                   ))}
                 </div>
