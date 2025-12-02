@@ -291,12 +291,8 @@ app.get('/api/files/:filename', requireAuth, (req, res) => {
         return res.status(403).json({ message: 'Accès refusé' });
     }
 
-    const uploadsDir = path.resolve('./uploads');
-    const filePath = path.resolve(uploadsDir, safeName);
-
-    if (!filePath.startsWith(uploadsDir + path.sep)) {
-        return res.status(403).json({ message: 'Accès refusé' });
-    }
+    const uploadsDir = './uploads';
+    const filePath = uploadsDir + '/' + safeName;
 
     try {
         const content = fs.readFileSync(filePath, 'utf8');
