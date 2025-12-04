@@ -186,7 +186,6 @@ ENV REACT_APP_API_KEY=frontend-api-key-123456
 
 ### 14. Vulnérabilités dans react-scripts
 **Sévérité:** Haute
-**Type:** Dépendances obsolètes
 
 - nth-check < 2.0.1 : ReDoS
 - postcss < 8.4.31 : Parsing error
@@ -200,7 +199,6 @@ ENV REACT_APP_API_KEY=frontend-api-key-123456
 
 ### 15. Image Backend obsolète (node:16 / Debian 10)
 **Sévérité:** Critique
-**Type:** 16 CVE CRITICAL
 
 | Package | CVE | Description |
 |---------|-----|-------------|
@@ -218,7 +216,6 @@ ENV REACT_APP_API_KEY=frontend-api-key-123456
 
 ### 16. Image MongoDB obsolète (mongo:5.0)
 **Sévérité:** Critique
-**Type:** 3 CVE CRITICAL dans gosu
 
 | CVE | Description |
 |-----|-------------|
