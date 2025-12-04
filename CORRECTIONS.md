@@ -565,6 +565,70 @@ RUN npm install --omit=dev
 
 ---
 
+### 21. Containers exécutés en tant que root → Utilisateur non-root
+
+**Backend - Avant:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . .
+EXPOSE 5001
+CMD ["node", "server.js"]
+```
+
+**Backend - Après:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . .
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+EXPOSE 5001
+CMD ["node", "server.js"]
+```
+
+**Frontend - Avant:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
+
+**Frontend - Après:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
+
+---
+
 ## Fichiers ajoutés
 
 ### backend/.dockerignore
@@ -637,23 +701,24 @@ node_modules/
 
 | # | Vulnérabilité | Sévérité | Statut |
 |---|---------------|----------|--------|
-| 1 | Secrets en dur (backend) | Critique | ✅ Corrigé |
-| 2 | Session non sécurisée | Haute | ✅ Corrigé |
-| 3 | eval() backend | Critique | ✅ Corrigé |
-| 4 | Injection SQL | Critique | ✅ Corrigé |
-| 5 | Path Traversal | Haute | ✅ Corrigé |
-| 6 | Route debug exposée | Critique | ✅ Corrigé |
-| 7 | Routes sans auth | Moyenne | ✅ Corrigé |
-| 8 | Exposition mots de passe | Haute | ✅ Corrigé |
-| 9 | Secrets en dur (frontend) | Critique | ✅ Corrigé |
-| 10 | eval() frontend | Critique | ✅ Corrigé |
-| 11 | XSS dangerouslySetInnerHTML | Haute | ✅ Corrigé |
-| 12 | console.log secrets | Moyenne | ✅ Corrigé |
-| 13 | Secret Dockerfile | Moyenne | ✅ Corrigé |
-| 14 | Dépendances vulnérables | Haute | ✅ Corrigé (Vite) |
-| 15 | Image backend obsolète | Critique | ✅ Corrigé (node:20-alpine) |
-| 16 | Image MongoDB obsolète | Critique | ✅ Corrigé (mongo:7.0) |
-| 17 | Image frontend obsolète | Haute | ✅ Corrigé (node:20-alpine) |
-| 18 | Secrets Dockerfile backend | Critique | ✅ Corrigé |
-| 19 | Ordre Dockerfile inefficace | Basse | ✅ Corrigé |
-| 20 | Dépendances dev en prod | Moyenne | ✅ Corrigé |
+| 1 | Secrets en dur (backend) | Critique | Corrigé |
+| 2 | Session non sécurisée | Haute | Corrigé |
+| 3 | eval() backend | Critique | Corrigé |
+| 4 | Injection SQL | Critique | Corrigé |
+| 5 | Path Traversal | Haute | Corrigé |
+| 6 | Route debug exposée | Critique | Corrigé |
+| 7 | Routes sans auth | Moyenne | Corrigé |
+| 8 | Exposition mots de passe | Haute | Corrigé |
+| 9 | Secrets en dur (frontend) | Critique | Corrigé |
+| 10 | eval() frontend | Critique | Corrigé |
+| 11 | XSS dangerouslySetInnerHTML | Haute | Corrigé |
+| 12 | console.log secrets | Moyenne | Corrigé |
+| 13 | Secret Dockerfile | Moyenne | Corrigé |
+| 14 | Dépendances vulnérables | Haute | Corrigé (Vite) |
+| 15 | Image backend obsolète | Critique | Corrigé (node:20-alpine) |
+| 16 | Image MongoDB obsolète | Critique | Corrigé (mongo:7.0) |
+| 17 | Image frontend obsolète | Haute | Corrigé (node:20-alpine) |
+| 18 | Secrets Dockerfile backend | Critique | Corrigé |
+| 19 | Ordre Dockerfile inefficace | Basse | Corrigé |
+| 20 | Dépendances dev en prod | Moyenne | Corrigé |
+| 21 | Containers en root | Haute | Corrigé (utilisateur non-root) |
