@@ -229,27 +229,27 @@ docker run -v $(pwd):/path ghcr.io/gitleaks/gitleaks:latest detect --source="/pa
 Avant de soumettre votre projet, vérifiez :
 
 ### Code
-- [ ] Vulnérabilités identifiées et documentées
-- [ ] Corrections appliquées et testées
-- [ ] Secrets externalisés dans `.env`
-- [ ] `.env` dans `.gitignore`
-- [ ] Dépendances à jour (`npm audit` propre)
+- [X] Vulnérabilités identifiées et documentées
+- [X] Corrections appliquées et testées
+- [X] Secrets externalisés dans `.env`
+- [X] `.env` dans `.gitignore`
+- [X] Dépendances à jour (`npm audit` propre)
 
 ### Docker
-- [ ] `Dockerfile.secure` créés (backend + frontend)
-- [ ] Images Alpine utilisées
-- [ ] Utilisateur non-root
+- [X] `Dockerfile.secure` créés (backend + frontend)
+- [X] Images Alpine utilisées
+- [X] Utilisateur non-root
 - [ ] Healthcheck configuré
-- [ ] Scan Trivy sans vulnérabilités CRITICAL
+- [X] Scan Trivy sans vulnérabilités CRITICAL
 
 ### Pipeline
-- [ ] `.github/workflows/security.yml` compris et analysé
-- [ ] Résultats des scans interprétés
-- [ ] Corrections validées par les outils
+- [X] `.github/workflows/security.yml` compris et analysé
+- [X] Résultats des scans interprétés
+- [X] Corrections validées par les outils
 
 ### Documentation
-- [ ] `VULNERABILITIES.md` complet
-- [ ] `CORRECTIONS.md` avec avant/après
+- [X] `VULNERABILITIES.md` complet
+- [X] `CORRECTIONS.md` avec avant/après
 - [ ] README mis à jour
 - [ ] Rapport PDF
 - [ ] Slides de présentation
