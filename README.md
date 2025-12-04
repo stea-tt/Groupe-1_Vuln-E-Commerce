@@ -24,4 +24,3 @@
 - Secrets externalisés via variables d'environnement
 - Containers non-root avec healthchecks
 
-**Documentation complète :** [Vulnérabilités](./VULNERABILITES.md) | [Corrections](./CORRECTIONS.md)
