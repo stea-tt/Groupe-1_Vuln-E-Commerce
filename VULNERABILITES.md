@@ -229,7 +229,6 @@ ENV REACT_APP_API_KEY=frontend-api-key-123456
 
 ### 17. Image Frontend obsolète (node:16)
 **Sévérité:** Haute
-**Type:** Image de base obsolète
 
 **Risque:** Même problème que le backend - Debian 10 n'est plus supporté.
 
@@ -251,7 +250,6 @@ ENV SESSION_SECRET=my-session-secret-key
 
 ### 19. Ordre des instructions Dockerfile inefficace
 **Sévérité:** Basse
-**Type:** Mauvaise pratique
 ```dockerfile
 COPY . .
 RUN npm install
