@@ -629,73 +629,125 @@ CMD ["serve", "-s", "build", "-l", "3000"]
 
 ---
 
-## Fichiers ajoutés
+### 22. Absence de healthcheck Docker → Healthchecks configurés
 
-### backend/.dockerignore
-```
-node_modules
-npm-debug.log
-.git
-.gitignore
-.env
-.env.*
-README.md
-```
+**Backend - Avant:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . .
 
-### frontend/.dockerignore
-```
-node_modules
-npm-debug.log
-build
-.git
-.gitignore
-.env
-.env.*
-README.md
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+EXPOSE 5001
+CMD ["node", "server.js"]
 ```
 
-### frontend/vite.config.js
+**Backend - Après:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . .
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+EXPOSE 5001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:5001/api/health || exit 1
+
+CMD ["node", "server.js"]
+```
+
+**Frontend - Avant:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
+
+**Frontend - Après:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
+
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nodeuser -u 1001 -G nodejs
+RUN chown -R nodeuser:nodejs /app
+USER nodeuser
+
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
+
+**docker-compose.yml - Avant:**
+```yaml
+services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+```
+
+**docker-compose.yml - Après:**
+```yaml
+services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+```
+
+**Route health ajoutée dans server.js:**
 ```javascript
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5001',
-        changeOrigin: true
-      }
-    }
-  },
-  build: {
-    outDir: 'build'
-  }
-})
-```
-
-### .env.example
-```
-JWT_SECRET=
-SESSION_SECRET=
-MONGODB_URI=mongodb://localhost:27017/ecommerce
-STRIPE_SECRET_KEY=
-ADMIN_API_KEY=
-PORT=5001
-COOKIE_DOMAIN=localhost
-VITE_API_KEY=
-VITE_API_URL=http://localhost:5001/api
-```
-
-### .gitignore (ajouts)
-```
-.env
-node_modules/
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
 ```
 
 ---
+
 
 ## Résumé des corrections
 
@@ -722,3 +774,4 @@ node_modules/
 | 19 | Ordre Dockerfile inefficace | Basse | Corrigé |
 | 20 | Dépendances dev en prod | Moyenne | Corrigé |
 | 21 | Containers en root | Haute | Corrigé (utilisateur non-root) |
+| 22 | Absence de healthcheck | Moyenne | Corrigé |
