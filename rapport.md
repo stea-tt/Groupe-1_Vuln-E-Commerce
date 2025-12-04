@@ -436,24 +436,6 @@ RUN npm install
 
 ---
 
-### Fichiers Modifies
-
-| Fichier | Modifications |
-|---------|---------------|
-| backend/server.js | Secrets, session, eval, SQL, path traversal, debug, auth, XSS, healthcheck |
-| frontend/src/App.jsx | Secrets, eval, XSS, console.log |
-| backend/Dockerfile | Image, ordre, dependances, utilisateur, healthcheck |
-| frontend/Dockerfile | Image, secrets, utilisateur, healthcheck |
-| docker-compose.yml | Images, variables, healthchecks |
-| frontend/package.json | Migration Vite |
-| frontend/vite.config.js | Nouveau fichier |
-| backend/.dockerignore | Nouveau fichier |
-| frontend/.dockerignore | Nouveau fichier |
-| .env.example | Nouveau fichier |
-| .gitignore | Ajout .env |
-
----
-
 ## Recommandations Complementaires
 
 ### Court Terme
