@@ -266,3 +266,34 @@ RUN npm install
 ```
 
 **Risque:** Les dépendances de développement augmentent la surface d'attaque et la taille de l'image.
+
+---
+
+### 21. Containers exécutés en tant que root
+**Sévérité:** Haute
+
+**Backend Dockerfile:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . .
+EXPOSE 5001
+CMD ["node", "server.js"]
+```
+
+**Frontend Dockerfile:**
+```dockerfile
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+RUN npm install -g serve
+EXPOSE 3000
+CMD ["serve", "-s", "build", "-l", "3000"]
+```
+
+**Risque:** Les containers s'exécutent avec les privilèges root par défaut. Si un attaquant exploite une vulnérabilité dans l'application, il obtient un accès root au container, ce qui facilite l'évasion du container et la compromission de l'hôte.
